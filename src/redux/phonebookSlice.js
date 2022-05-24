@@ -67,6 +67,7 @@ const phonebookSlice = createSlice({
 
 const getContactsState = state => state.phonebook.contacts.items;
 const getFilterState = state => state.phonebook.contacts.filter;
+const getIsLoadingState = state => state.phonebook.info.isLoading;
 const { changeFilter } = phonebookSlice.actions;
 export const phonebookReducer = phonebookSlice.reducer;
 
@@ -76,10 +77,12 @@ export const usePhonebook = () => {
   const dispatch = useDispatch();
   const contacts = useSelector(getContactsState);
   const filter = useSelector(getFilterState);
+  const isLoading = useSelector(getIsLoadingState);
   const handleAddContact = contact => dispatch(addContact(contact));
   const handleDeleteContact = id => dispatch(deleteContact(id));
   const handleChangeFilter = e => dispatch(changeFilter(e.currentTarget.value));
   return {
+    isLoading,
     contacts,
     filter,
     addContact: handleAddContact,

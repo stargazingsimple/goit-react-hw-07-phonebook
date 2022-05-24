@@ -5,9 +5,10 @@ import { Notification } from 'components/Notification/Notification';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { getContacts } from 'redux/phonebookOperations';
+import Loader from 'components/Loader/Loader';
 
 export const ContactList = () => {
-  const { contacts, filter, deleteContact } = usePhonebook();
+  const { contacts, filter, deleteContact, isLoading } = usePhonebook();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -28,7 +29,8 @@ export const ContactList = () => {
 
   return (
     <>
-      {contacts.length && visibleContacts.length ? (
+      {isLoading && <Loader />}
+      {contacts.length && visibleContacts.length && !isLoading ? (
         <ContactListContainer>
           {visibleContacts.map(({ id, name, number }) => {
             return (
@@ -43,7 +45,7 @@ export const ContactList = () => {
           })}
         </ContactListContainer>
       ) : (
-        <Notification message="List is empty" />
+        !isLoading && <Notification message="List is empty" />
       )}
     </>
   );
