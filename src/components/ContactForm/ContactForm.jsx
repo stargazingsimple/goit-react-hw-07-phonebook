@@ -33,7 +33,12 @@ export const ContactForm = () => {
     ) {
       return alert(`${name} is already in contacts`);
     }
-    addContact({ name, number });
+    const contact = {
+      id: nanoid(),
+      name,
+      number,
+    };
+    addContact(contact);
     resetForm();
   };
 

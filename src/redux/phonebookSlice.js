@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { nanoid } from 'nanoid';
+
 import { useDispatch, useSelector } from 'react-redux';
 import { getContacts, addContact, deleteContact } from './phonebookOperations';
 
@@ -41,14 +41,7 @@ const phonebookSlice = createSlice({
       state.info.isLoading = true;
       state.info.error = null;
     },
-    [addContact.fulfilled]: (state, action) => {
-      const { name, number } = action.payload;
-      const contact = {
-        id: nanoid(),
-        name,
-        number,
-      };
-      state.contacts.items.push(contact);
+    [addContact.fulfilled]: state => {
       state.info.isLoading = false;
       state.info.error = null;
     },
@@ -61,12 +54,13 @@ const phonebookSlice = createSlice({
       state.info.isLoading = true;
       state.info.error = null;
     },
-    [addContact.fulfilled]: (state, action) => {
-      state.contacts.items = state.contacts.items.filter(
-        ({ id }) => id !== action.payload
-      );
+    [deleteContact.fulfilled]: state => {
       state.info.isLoading = false;
       state.info.error = null;
+    },
+    [deleteContact.rejected]: (state, action) => {
+      state.info.isLoading = false;
+      state.info.error = action.payload;
     },
   },
 });
@@ -82,7 +76,7 @@ export const usePhonebook = () => {
   const dispatch = useDispatch();
   const contacts = useSelector(getContactsState);
   const filter = useSelector(getFilterState);
-  const handleAddContact = (name, number) => dispatch(addContact(name, number));
+  const handleAddContact = contact => dispatch(addContact(contact));
   const handleDeleteContact = id => dispatch(deleteContact(id));
   const handleChangeFilter = e => dispatch(changeFilter(e.currentTarget.value));
   return {
