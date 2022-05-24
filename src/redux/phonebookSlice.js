@@ -1,8 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { nanoid } from 'nanoid';
 import { useDispatch, useSelector } from 'react-redux';
-import { persistReducer } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
+import { getContacts, addContact, deleteContact } from './phonebookOperations';
 
 // ======= Slice
 
@@ -13,9 +12,36 @@ const phonebookSlice = createSlice({
       items: [],
       filter: '',
     },
+    info: {
+      isLoading: false,
+      error: null,
+    },
   },
   reducers: {
-    addContact(state, action) {
+    changeFilter(state, action) {
+      state.contacts.filter = action.payload;
+    },
+  },
+  extraReducers: {
+    [getContacts.pending]: state => {
+      state.info.isLoading = true;
+      state.info.error = null;
+    },
+    [getContacts.fulfilled]: (state, action) => {
+      state.contacts.items = action.payload;
+      state.info.isLoading = false;
+      state.info.error = null;
+    },
+    [getContacts.rejected]: (state, action) => {
+      state.info.isLoading = false;
+      state.info.error = action.payload;
+    },
+
+    [addContact.pending]: state => {
+      state.info.isLoading = true;
+      state.info.error = null;
+    },
+    [addContact.fulfilled]: (state, action) => {
       const { name, number } = action.payload;
       const contact = {
         id: nanoid(),
@@ -23,29 +49,39 @@ const phonebookSlice = createSlice({
         number,
       };
       state.contacts.items.push(contact);
+      state.info.isLoading = false;
+      state.info.error = null;
     },
-    deleteContact(state, action) {
+    [addContact.rejected]: (state, action) => {
+      state.info.isLoading = false;
+      state.info.error = action.payload;
+    },
+
+    [deleteContact.pending]: state => {
+      state.info.isLoading = true;
+      state.info.error = null;
+    },
+    [addContact.fulfilled]: (state, action) => {
       state.contacts.items = state.contacts.items.filter(
         ({ id }) => id !== action.payload
       );
-    },
-    changeFilter(state, action) {
-      state.contacts.filter = action.payload;
+      state.info.isLoading = false;
+      state.info.error = null;
     },
   },
 });
 
-const getContacts = state => state.phonebook.contacts.items;
-const getFilter = state => state.phonebook.contacts.filter;
-const { addContact, deleteContact, changeFilter } = phonebookSlice.actions;
+const getContactsState = state => state.phonebook.contacts.items;
+const getFilterState = state => state.phonebook.contacts.filter;
+const { changeFilter } = phonebookSlice.actions;
 export const phonebookReducer = phonebookSlice.reducer;
 
 // ======= Custom Hook
 
 export const usePhonebook = () => {
   const dispatch = useDispatch();
-  const contacts = useSelector(getContacts);
-  const filter = useSelector(getFilter);
+  const contacts = useSelector(getContactsState);
+  const filter = useSelector(getFilterState);
   const handleAddContact = (name, number) => dispatch(addContact(name, number));
   const handleDeleteContact = id => dispatch(deleteContact(id));
   const handleChangeFilter = e => dispatch(changeFilter(e.currentTarget.value));
@@ -57,11 +93,3 @@ export const usePhonebook = () => {
     changeFilter: handleChangeFilter,
   };
 };
-
-// ======= Persist
-const persistConfig = {
-  key: 'phonebook',
-  storage,
-};
-
-export const persistedReducer = persistReducer(persistConfig, phonebookReducer);
